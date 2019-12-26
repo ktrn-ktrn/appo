@@ -1,0 +1,56 @@
+# Routes Config
+#
+# This file defines all application routes (Higher priority routes first)
+#
+
+module:testrunner
+# module:jobs
+
+
+GET     /                                       							App.Index
+GET     /Login                                      						CAuth.Login
+GET     /Logout                                      						CAuth.Logout
+
+GET 	/assessment/:assessmentID 											CAssessment.GetAssessmentByID
+GET 	/assessment/:assessmentID/status 									CAssessment.GetStatus
+GET 	/assessment 														CAssessment.GetAssessments
+PUT 	/assessment 														CAssessment.PutAssessment
+POST 	/assessment/:assessmentID 											CAssessment.PostAssessmentByID
+POST 	/assessment/:assessmentID/status/:statusID							CAssessment.SetStatus
+DELETE 	/assessment/:assessmentID 											CAssessment.DeleteAssessmentByID
+
+GET 	/assessment/:assessmentID/candidate/:candidateID 					CCandidate.GetCandidateByID
+GET 	/assessment/:assessmentID/candidate/								CCandidate.GetCandidates
+GET 	/assessment/:assessmentID/candidate/:candidateID/status				CCandidate.GetCandidateStatus
+GET		/candidate															CCandidate.GetAllCandidates
+PUT 	/assessment/:assessmentID/candidate/								CCandidate.PutCandidate
+POST 	/assessment/:assessmentID/candidate/:candidateID 					CCandidate.PostCandidateByID
+POST 	/assessment/:assessmentID/candidate/:candidateID/status/:statusID	CCandidate.SetStatus
+DELETE 	/assessment/:assessmentID/candidate/:candidateID 					CCandidate.DeleteCandidateByID
+
+GET		/assessment/:assessmentID/interviewer								CInterviewer.GetInterviewers
+GET		/interviewer/:interviewerID											CInterviewer.GetInterviewerByID
+GET		/interviewer														CInterviewer.GetAllInterviewers
+PUT		/interviewer														CInterviewer.SetInterviewer
+PUT		/assessment/:assessmentID/interviewer								CInterviewer.PutInterviewer
+POST	/interviewer/:interviewerID											CInterviewer.PostInterviewer
+DELETE	/interviewer/:interviewerID											CInterviewer.DeleteInterviewer
+DELETE	/assessment/:assessmentID/interviewer/:interviewerID				CInterviewer.DeleteInterviewerByID         
+
+
+
+# Ignore favicon requests
+GET     /favicon.ico                            404
+
+# Map static resources from the /app/public folder to the /public path
+GET     /public/*filepath                       Static.Serve("public")
+
+# Catch all, this will route any request into the controller path
+#
+#                    **** WARNING ****
+# Enabling this exposes any controller and function to the web.
+# ** This is a serious security issue if used online **
+#
+# For rapid development uncomment the following to add new controller.action endpoints
+# without having to add them to the routes table.
+# *       /:controller/:action                    :controller.:action

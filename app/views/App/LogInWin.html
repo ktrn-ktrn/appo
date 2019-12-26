@@ -1,0 +1,34 @@
+{{set . "title" "Home"}}
+{{template "header.html" .}}
+
+<div class="container">
+  <div class="row">
+    <div class="span6">
+        <body>
+            <style>
+                .wxi-trash{
+                  color: #ccc;
+                  float: right;
+                  margin-top: 8px;
+                }
+                .wxi-trash:hover{
+                  color: #888;
+                }
+                .webix_selected .wxi-trash:hover{
+                  color: #fff;
+                }
+            
+            </style>
+            <link rel="stylesheet" href="public/css/skins/flat.css" type="text/css">
+            <link type="text/css" rel="stylesheet" href="public/css/webix.css">
+            <script src="public/js/webix.js"></script>
+            <script src="public/js/k.js"></script>
+            <script src="public/js/login/login.js"></script>
+
+        </body>
+        
+    </div>
+  </div>
+</div>
+
+{{template "footer.html" .}}
