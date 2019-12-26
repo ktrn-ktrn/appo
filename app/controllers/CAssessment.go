@@ -27,7 +27,7 @@ type CAssessment struct {
 //проверка существованя пользователя с введенными именем и паролем
 func LoginAssessment(userName string, password string) (*entities.User, error) {
 
-	//gjlrk.xtybt r ,fpt lfyys[
+	//подключение к БД
 	var erro error
 	connStr := "user=postgres password=password port=5433 dbname=AssessmentManager sslmode=disable"
 	db, erro := sql.Open("postgres", connStr)
@@ -66,6 +66,7 @@ func LoginAssessment(userName string, password string) (*entities.User, error) {
 func (c *CAssessment) Init() {
 	c.provider = new(assessment.AssessmentProvider)
 	// ПРОВЕРКА АУТЕНТИФИКАЦИИ
+	//запрашиваем заголовок
 	authorization := c.Request.Header.Get("Authorization")
 
 	// если запрошенный заголовок не равен "Authorization", то возвращаем запрос
@@ -96,7 +97,7 @@ func (c *CAssessment) Init() {
 		userName := loginAndPassSplited[0]
 		password := loginAndPassSplited[1]
 		var err error
-		// ... и вызываем функцию LoginAssessment с полученными данными в качестве параметра
+		// ... и вызываем функцию LoginAssessment с полученными данными в качестве параметров
 		user, err = LoginAssessment(userName, password)
 		if err != nil {
 			fmt.Print("CAssessment::Init:%v", err)
