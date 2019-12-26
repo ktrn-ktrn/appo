@@ -15,6 +15,7 @@ type CandidateProvider struct {
 }
 
 func (p *CandidateProvider) Init() error {
+	//подключение к БД
 	var err error
 	connStr := "user=postgres password=password port=5433 dbname=AssessmentManager sslmode=disable"
 	p.db, err = sql.Open("postgres", connStr)
@@ -26,6 +27,7 @@ func (p *CandidateProvider) Init() error {
 	return nil
 }
 
+//получить список всех существующих кандидатов
 func (p *CandidateProvider) GetAllCandidates() ([]*entities.Candidate, error) {
 	defer p.db.Close()
 	candidates, err := p.candidates.SelectAllCandidates()
@@ -35,6 +37,7 @@ func (p *CandidateProvider) GetAllCandidates() ([]*entities.Candidate, error) {
 	return candidates, nil
 }
 
+//получем всех кандидатов, участвующих в выбраном ассессменте
 func (p *CandidateProvider) GetCandidates(assessmentId int64) ([]*entities.Candidate, error) {
 	defer p.db.Close()
 	candidates, err := p.candidates.Select(assessmentId)
@@ -44,6 +47,7 @@ func (p *CandidateProvider) GetCandidates(assessmentId int64) ([]*entities.Candi
 	return candidates, nil
 }
 
+//получаем выбранного кандидата
 func (p *CandidateProvider) GetCandidateById(id int64, assessmentId int64) (*entities.Candidate, error) {
 	defer p.db.Close()
 	candidate, err := p.candidates.SelectById(id, assessmentId)
@@ -54,27 +58,33 @@ func (p *CandidateProvider) GetCandidateById(id int64, assessmentId int64) (*ent
 	return candidate, err
 }
 
+//получаем актальный статус кандидата
 func (p *CandidateProvider) GetCandidateStatus(id int64, candidateId int64) ([]*entities.CandidateStatus, error) {
 	defer p.db.Close()
 	candidate, err := p.candidates.SelectStatus(id, candidateId)
 	return candidate, err
 }
 
+//задать статус кандидата в выбранном ассессменте
 func (p *CandidateProvider) SetCandidateStatus(newStatus *entities.CandidateStatus, statusId int64, assessmentId int64) (int64, error) {
 	defer p.db.Close()
 	status, err := p.candidates.SetStatus(newStatus, statusId, assessmentId)
 	return status, err
 }
 
+//добавить кандидата в выбранный ассессмент
 func (p *CandidateProvider) PutCandidate(newCandidate *entities.Candidate, assessmentId int64) (*entities.Candidate, error) {
 	defer p.db.Close()
-	newCandidate.Status = 1
+
+	//добавляем кандидата
 	id, err := p.candidates.Insert(newCandidate, assessmentId)
 	if err != nil {
 		if err != nil {
 			return nil, fmt.Errorf("CandidateProvider::PutCandidate:%v", err)
 		}
 	}
+
+	//возвращаем добавленного
 	createdCandidate, err := p.candidates.SelectById(id, assessmentId)
 	if err != nil {
 		return nil, fmt.Errorf("CandidateProvider::PutCandidate:%v", err)
@@ -82,14 +92,19 @@ func (p *CandidateProvider) PutCandidate(newCandidate *entities.Candidate, asses
 	return createdCandidate, nil
 }
 
+//изменить кандидата
 func (p *CandidateProvider) PostCandidate(newCandidate *entities.Candidate, candidateId int64, assessmentId int64) (*entities.Candidate, error) {
 	defer p.db.Close()
+
+	//изменяем кадидата
 	id, err := p.candidates.Update(newCandidate, candidateId)
 	if err != nil {
 		if err != nil {
 			return nil, fmt.Errorf("CandidateProvider::PostCandidate:%v", err)
 		}
 	}
+
+	//возвращаем изменённого кандидата
 	updatedCandidate, err := p.candidates.SelectById(id, assessmentId)
 	if err != nil {
 		return nil, fmt.Errorf("CandidateProvider::PostCandidate:%v", err)
@@ -97,6 +112,7 @@ func (p *CandidateProvider) PostCandidate(newCandidate *entities.Candidate, cand
 	return updatedCandidate, nil
 }
 
+//удалить кандидата из выбраного ассессмента
 func (p *CandidateProvider) DeleteCandidate(id int64, idAssessment int64) error {
 	defer p.db.Close()
 	err := p.candidates.Delete(id, idAssessment)
