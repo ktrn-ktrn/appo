@@ -45,7 +45,7 @@ func (p *AssessmentProvider) GetAssessmentById(id int64) (*entities.Assessment, 
 	return assessment, err
 }
 
-// получить текущий статус ассессмента
+// получить возможные статусы ассессмента
 func (p *AssessmentProvider) GetAssessmentStatus(id int64) ([]*entities.AssessmentStatus, error) {
 	defer p.db.Close()
 	assessment, err := p.assessments.SelectStatus(id)

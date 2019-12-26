@@ -15,6 +15,7 @@ func (m *InterviewerMapper) Init(db *sql.DB) error {
 	return nil
 }
 
+//выбрать всех сотрудников
 func (m *InterviewerMapper) SelectAll() ([]*entities.Interviewer, error) {
 	var (
 		c_id           sql.NullInt64
@@ -27,7 +28,8 @@ func (m *InterviewerMapper) SelectAll() ([]*entities.Interviewer, error) {
 	)
 
 	interviewers := make([]*entities.Interviewer, 0)
-
+	//обращение к БД
+	//выбираем всех сотрудников из таблицы t_interviewer
 	rows, err := m.db.Query("SELECT c_id, c_surname, c_name, c_patronymic, c_email, c_phone_number, c_position FROM t_interviewer")
 	if err != nil {
 		fmt.Print(err)
@@ -52,6 +54,7 @@ func (m *InterviewerMapper) SelectAll() ([]*entities.Interviewer, error) {
 	return interviewers, nil
 }
 
+//получить сотрудников в выбранном ассессменте
 func (m *InterviewerMapper) Select(assessmentId int64) ([]*entities.Interviewer, error) {
 	var (
 		c_id           sql.NullInt64
@@ -64,7 +67,6 @@ func (m *InterviewerMapper) Select(assessmentId int64) ([]*entities.Interviewer,
 	)
 
 	interviewers := make([]*entities.Interviewer, 0)
-
 	rows, err := m.db.Query("SELECT u.c_id, u.c_surname, u.c_name, u.c_patronymic, c_email, c_phone_number, c_position FROM t_interviewer u INNER JOIN toc_assessment_interviewer d ON u.c_id = d.c_id_interviewer WHERE d.c_id_assessment = $1", assessmentId)
 	if err != nil {
 		fmt.Print(err)
@@ -89,6 +91,7 @@ func (m *InterviewerMapper) Select(assessmentId int64) ([]*entities.Interviewer,
 	return interviewers, nil
 }
 
+//получить выбранного сотрудника
 func (m *InterviewerMapper) SelectById(interviewerId int64) (*entities.Interviewer, error) {
 	var (
 		c_id           sql.NullInt64
@@ -120,9 +123,11 @@ func (m *InterviewerMapper) SelectById(interviewerId int64) (*entities.Interview
 	return interviewer, nil
 }
 
+//добавить сотрудника в ассессмент
 func (m *InterviewerMapper) Insert(newInterviewer *entities.Interviewer, assessmentId int64) (int64, error) {
 	var insertedId int64
-
+	//обращения к БД
+	//добавление сотрудника к списку сотрудников
 	insertQuery := `INSERT INTO t_interviewer 
 		(c_id, c_surname, c_name, c_patronymic, c_email, c_phone_number, c_position) 
 		SELECT nextval('interviewer_id'), $1, $2, $3, $4, $5, $6 
@@ -131,7 +136,7 @@ func (m *InterviewerMapper) Insert(newInterviewer *entities.Interviewer, assessm
 	if err != nil {
 		return 0, fmt.Errorf("Ошибка вставки сотрудника: %v", err)
 	}
-
+	//возвращаем его ID
 	row := m.db.QueryRow(`select c_id FROM t_interviewer WHERE c_surname = $1 AND c_name = $2 AND c_patronymic = $3 AND c_position = $4`, newInterviewer.Surname, newInterviewer.Name, newInterviewer.Patronymic, newInterviewer.Position)
 
 	err = row.Scan(&insertedId)
@@ -140,7 +145,7 @@ func (m *InterviewerMapper) Insert(newInterviewer *entities.Interviewer, assessm
 	} else if err != nil {
 		return 0, fmt.Errorf("CandidateMapper::SelectById:%v", err)
 	}
-
+	//добавление сотрдуника в таблицу связи toc_assessment_interviewer
 	insertQueryToAssess := `INSERT INTO toc_assessment_interviewer 
 		(c_id, c_id_assessment, c_id_interviewer) 
 		SELECT nextval('assessment_interviewer_id'), $1, $2 
@@ -153,6 +158,7 @@ func (m *InterviewerMapper) Insert(newInterviewer *entities.Interviewer, assessm
 	return insertedId, nil
 }
 
+//изменить сотрудника
 func (m *InterviewerMapper) Update(newInterviewer *entities.Interviewer, interviewerId int64) (int64, error) {
 	insertQuery := `UPDATE t_interviewer 
 		SET c_surname = $1, c_name = $2, c_patronymic = $3, c_email = $4, c_phone_number = $5, c_position = $6
@@ -164,9 +170,11 @@ func (m *InterviewerMapper) Update(newInterviewer *entities.Interviewer, intervi
 	return interviewerId, nil
 }
 
+//добавить сотрудника к списку сотрдуников
 func (m *InterviewerMapper) InsertInterviewer(newInterviewer *entities.Interviewer) (int64, error) {
 	var insertedId int64
 
+	//добавить к списку
 	insertQuery := `INSERT INTO t_interviewer 
 		(c_id, c_surname, c_name, c_patronymic, c_email, c_phone_number, c_position) 
 		SELECT nextval('interviewer_id'), $1, $2, $3, $4, $5, $6 
@@ -175,7 +183,7 @@ func (m *InterviewerMapper) InsertInterviewer(newInterviewer *entities.Interview
 	if err != nil {
 		return 0, fmt.Errorf("Ошибка вставки сотрудника: %v", err)
 	}
-
+	//вернуть его ID
 	row := m.db.QueryRow(`select c_id FROM t_interviewer WHERE c_surname = $1 AND c_name = $2 AND c_patronymic = $3 AND c_position = $4`, newInterviewer.Surname, newInterviewer.Name, newInterviewer.Patronymic, newInterviewer.Position)
 
 	err = row.Scan(&insertedId)
@@ -187,6 +195,7 @@ func (m *InterviewerMapper) InsertInterviewer(newInterviewer *entities.Interview
 	return insertedId, nil
 }
 
+//удаление сотрудника из ассессмента
 func (m *InterviewerMapper) Delete(id int64, idAssessment int64) error {
 	_, err := m.db.Exec("DELETE FROM toc_assessment_interviewer WHERE c_id_interviewer = $1 AND c_id_assessment = $2", id, idAssessment)
 	if err == sql.ErrNoRows {
@@ -197,6 +206,7 @@ func (m *InterviewerMapper) Delete(id int64, idAssessment int64) error {
 	return nil
 }
 
+//удалить из словаря
 func (m *InterviewerMapper) DeleteFromD(id int64) error {
 
 	deleteQuery := `DELETE FROM toc_assessment_interviewer WHERE c_id_interviewer = $1;`

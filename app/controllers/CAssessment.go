@@ -133,6 +133,7 @@ func (c *CAssessment) GetAssessmentByID() revel.Result {
 	return c.RenderJSON(helpers.Success(assessment))
 }
 
+//получить возможные статусы ассессмента
 func (c *CAssessment) GetStatus() revel.Result {
 	c.Init()
 

@@ -58,7 +58,7 @@ func (p *CandidateProvider) GetCandidateById(id int64, assessmentId int64) (*ent
 	return candidate, err
 }
 
-//получаем актальный статус кандидата
+//получаем возможные статусы кандидата
 func (p *CandidateProvider) GetCandidateStatus(id int64, candidateId int64) ([]*entities.CandidateStatus, error) {
 	defer p.db.Close()
 	candidate, err := p.candidates.SelectStatus(id, candidateId)

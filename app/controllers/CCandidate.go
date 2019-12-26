@@ -176,7 +176,7 @@ func (c *CCandidate) GetCandidateByID() revel.Result {
 	return c.RenderJSON(helpers.Success(candidate))
 }
 
-//получить статус кандидата
+//получить возможные статусы кандидата
 func (c *CCandidate) GetCandidateStatus() revel.Result {
 	c.Init()
 
