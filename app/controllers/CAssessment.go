@@ -24,8 +24,10 @@ type CAssessment struct {
 	db       *sql.DB
 }
 
+//проверка существованя пользователя с введенными именем и паролем
 func LoginAssessment(userName string, password string) (*entities.User, error) {
 
+	//gjlrk.xtybt r ,fpt lfyys[
 	var erro error
 	connStr := "user=postgres password=password port=5433 dbname=AssessmentManager sslmode=disable"
 	db, erro := sql.Open("postgres", connStr)
@@ -38,12 +40,14 @@ func LoginAssessment(userName string, password string) (*entities.User, error) {
 		c_user_name sql.NullString
 		c_password  sql.NullString
 	)
-
+	//запрос к базе данных
+	//выбрать пользователя с заданными именем и паролем
 	selectQuery := `SELECT c_id, c_user_name, c_password FROM t_user WHERE c_user_name = $1 AND
 	c_password = $2`
 	row := db.QueryRow(selectQuery, userName, password)
-
 	err := row.Scan(&c_id, &c_user_name, &c_password)
+
+	//если нет такого пользователя, возвращаем nil, если есть ошибка - озвращаем ошибку
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
@@ -61,21 +65,18 @@ func LoginAssessment(userName string, password string) (*entities.User, error) {
 
 func (c *CAssessment) Init() {
 	c.provider = new(assessment.AssessmentProvider)
-	/*
-		c.Request.Header.Get("token")
-		if !authentication.Get(c.Request.Header.Get("token")) {
-			c.Redirect("/login")
-		}
-	*/
 	// ПРОВЕРКА АУТЕНТИФИКАЦИИ
 	authorization := c.Request.Header.Get("Authorization")
 
+	// если запрошенный заголовок не равен "Authorization", то возвращаем запрос
+	// аутентификации через заголовок WWW-Authentificate:
 	if authorization == "" {
-		fmt.Print("ЗДЕСЬ")
 		c.Response.Out.Header().Add("WWW-Authenticate", `Basic realm="Please enter your username and password for this site"`)
 		c.Response.SetStatus(401)
 	}
 
+	// получаем закодированные имя пользователя и пароль
+	// убираем подстроку "Basic " и декодируем
 	loginAndPassB64 := strings.TrimLeft(authorization, "Basic ")
 	bLoginAndPass, err := base64.StdEncoding.DecodeString(loginAndPassB64)
 
@@ -83,24 +84,27 @@ func (c *CAssessment) Init() {
 		fmt.Println(fmt.Sprintf("ERROR decode base64: %v", err))
 		return
 	}
+
+	// конвертируем в string
 	loginAndPass := string(bLoginAndPass)
 	var user *entities.User = nil
 
+	// если строка не пустая то разделяем её по символу ':' на имя пользователя и пароль...
 	if len(loginAndPass) != 0 {
 		loginAndPassSplited := strings.Split(loginAndPass, ":")
 
 		userName := loginAndPassSplited[0]
 		password := loginAndPassSplited[1]
 		var err error
-
+		// ... и вызываем функцию LoginAssessment с полученными данными в качестве параметра
 		user, err = LoginAssessment(userName, password)
 		if err != nil {
-			fmt.Print("\n\n\nОШИБКА:\n", err)
+			fmt.Print("CAssessment::Init:%v", err)
 		}
 	}
 
-	// ЕСЛИ ЛОГИНА И ПАРОЛЯ НЕТ (ИЛИ ОНИ НЕПРАВИЛЬНЫЕ), ТО ВОЗВРАЩАЕМ ЗАПРОС
-	// АУТЕНТИФИКАЦИИ (ЧЕРЕЗ ЗАГОЛОВОК WWW-Authentificate)
+	// если имя пользователя неправильные (то есть функция LoginAssessment вернула nil),
+	//то возвращаем запрос аутентификации через заголовок WWW-Authentificate
 	if user == nil {
 		fmt.Println("\n\n\nUSER = NIL")
 		c.Response.Out.Header().Add("WWW-Authenticate", `Basic realm="Please enter your username and password for this site"`)
@@ -113,12 +117,14 @@ func (c *CAssessment) Init() {
 }
 func (c *CAssessment) GetAssessmentByID() revel.Result {
 	c.Init()
-
+	// достаём ID ассессмента и конвертируем его в int
 	sAssessmentId := c.Params.Get("assessmentID")
 	assessmentId, err := strconv.ParseInt(sAssessmentId, 10, 64)
 	if err != nil {
 		return c.RenderJSON(helpers.Failed(err))
 	}
+
+	//вызываем метод GetAssessmentById из провайдера
 	assessment, err := c.provider.GetAssessmentById(assessmentId)
 	if err != nil {
 		return c.RenderJSON(helpers.Failed(err))
@@ -129,11 +135,13 @@ func (c *CAssessment) GetAssessmentByID() revel.Result {
 func (c *CAssessment) GetStatus() revel.Result {
 	c.Init()
 
+	// достаём ID нужного ассессмента и конвертируем его в int
 	sAssessmentId := c.Params.Get("assessmentID")
 	assessmentId, err := strconv.ParseInt(sAssessmentId, 10, 64)
 	if err != nil {
 		return c.RenderJSON(helpers.Failed(err))
 	}
+
 	assessment, err := c.provider.GetAssessmentStatus(assessmentId)
 	if err != nil {
 		return c.RenderJSON(helpers.Failed(err))
@@ -149,20 +157,27 @@ func (c *CAssessment) SetStatus() revel.Result {
 		return c.RenderJSON(helpers.Failed(err))
 	}
 
+	// достаём ID статуса и конвертируем его в int
 	sStatusId := c.Params.Get("statusID")
 	statusId, err := strconv.ParseInt(sStatusId, 10, 64)
 	if err != nil {
 		return c.RenderJSON(helpers.Failed(err))
 	}
+
+	//создаем пустой объект типа AssessmentStatus
 	var newStatus entities.AssessmentStatus
+	//получаем текущий статус ассессмента
 	b, err := ioutil.ReadAll(c.Request.GetBody())
 	if err != nil {
 		return c.RenderJSON(helpers.Failed(err))
 	}
+
+	//преобразовываем из json и записываем в переменную newStatus
 	err = json.Unmarshal(b, &newStatus)
 	if err != nil {
 		return c.RenderJSON(helpers.Failed(err))
 	}
+
 	updatedStatus, err := c.provider.SetAssessmentStatus(&newStatus, statusId, assessmentId)
 	if err != nil {
 		return c.RenderJSON(helpers.Failed(err))
@@ -170,6 +185,7 @@ func (c *CAssessment) SetStatus() revel.Result {
 	return c.RenderJSON(helpers.Success(updatedStatus))
 }
 
+// получпем список ВСЕХ ассессментов
 func (c *CAssessment) GetAssessments() revel.Result {
 	c.Init()
 	assessments, err := c.provider.GetAssessments()
@@ -179,9 +195,12 @@ func (c *CAssessment) GetAssessments() revel.Result {
 	return c.RenderJSON(helpers.Success(assessments))
 }
 
+//вставка ассессмента
 func (c *CAssessment) PutAssessment() revel.Result {
 	c.Init()
+
 	var newAssessment entities.Assessment
+
 	b, err := ioutil.ReadAll(c.Request.GetBody())
 	if err != nil {
 		return c.RenderJSON(helpers.Failed(err))
@@ -197,6 +216,7 @@ func (c *CAssessment) PutAssessment() revel.Result {
 	return c.RenderJSON(helpers.Success(createdAssessment))
 }
 
+// изменение асссессмента
 func (c *CAssessment) PostAssessmentByID() revel.Result {
 
 	c.Init()
@@ -221,15 +241,17 @@ func (c *CAssessment) PostAssessmentByID() revel.Result {
 	return c.RenderJSON(helpers.Success(updatedAssessment))
 }
 
+//удаление ассессмента
 func (c *CAssessment) DeleteAssessmentByID() revel.Result {
 	c.Init()
+	//получаем ID удаляемого ассессментаи и конвертируем в int
 	sAssessmentId := c.Params.Get("assessmentID")
-	//fmt.Printf("String Assessment from CAssessment:", sAssessmentId)
 	assessmentId, err := strconv.ParseInt(sAssessmentId, 10, 64)
 	if err != nil {
 		return c.RenderJSON(helpers.Failed(err))
 	}
-	//fmt.Printf("ID Assessment from CAssessment:", assessmentId)
+
+	//вызываем метод удаления ассессмента из провайдера
 	erro := c.provider.DeleteAssessment(assessmentId)
 	if erro != nil {
 		return c.RenderJSON(erro)
