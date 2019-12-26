@@ -220,7 +220,6 @@ func (c *CAssessment) PutAssessment() revel.Result {
 
 // изменение асссессмента
 func (c *CAssessment) PostAssessmentByID() revel.Result {
-
 	c.Init()
 	sAssessmentId := c.Params.Get("assessmentID")
 	assessmentId, err := strconv.ParseInt(sAssessmentId, 10, 64)

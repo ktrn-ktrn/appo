@@ -29,7 +29,9 @@ var AllInterviewer = {
 }
 
 var btnAddIntToDictionary = {
-    view:"button", id: "addSobToD", type:"icon", icon:"wxi-plus", width: 50, popup: "addInterviewerToDictionary"
+    view:"button", id: "addSobToD", type:"icon", icon:"wxi-plus", width: 50, click: function(){
+        addInterToD.show();
+    }
 }
 
 var btnRemoveIntFromDictionary = {
@@ -100,8 +102,14 @@ webix.ui({
     ]}
 });
 
-webix.ui({
-    view:"popup",
+var addInterToD = webix.ui({
+    view: 'window',
+    head: 'Добавить сотрудника',
+    width: 500,
+    editable: true,
+    position: 'center',
+    move: true,
+    close: true,
     id:"addInterviewerToDictionary",
     body:{view:"form", id:"formAddInter", scroll:false,
         elements:[
